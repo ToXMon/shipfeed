@@ -59,7 +59,8 @@ export async function POST(req: Request) {
 
   if (event.type === "invoice.payment_failed") {
     const invoice = event.data.object;
-    const subscriptionId = typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
+    const invoiceSubscription = (invoice as { subscription?: string | { id?: string } }).subscription;
+    const subscriptionId = typeof invoiceSubscription === "string" ? invoiceSubscription : invoiceSubscription?.id;
     if (subscriptionId) {
       await supabase
         .from("subscriptions")
