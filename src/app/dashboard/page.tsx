@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { Plus } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { DashboardContent } from "./dashboard-content";
 
