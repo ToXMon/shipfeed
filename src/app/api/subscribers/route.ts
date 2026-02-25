@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export async function POST(req: Request) {
   const supabase = await createClient();
   const body = await req.json();
   const { projectId, email } = body;
+
+  if (!projectId || typeof projectId !== "string") {
+    return NextResponse.json({ error: "Missing or invalid projectId" }, { status: 400 });
+  }
+  if (!email || !EMAIL_REGEX.test(String(email))) {
+    return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
+  }
 
   const { data, error } = await supabase
     .from("subscribers")

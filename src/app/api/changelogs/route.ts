@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getUserPlan } from "@/lib/plans";
+
+const FREE_CHANGELOG_MONTHLY_LIMIT = 10;
 
 export async function GET(req: Request) {
   const supabase = await createClient();
@@ -21,7 +24,33 @@ export async function POST(req: Request) {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const plan = await getUserPlan(userData.user.id);
+  if (plan !== "pro") {
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+    const { count } = await supabase
+      .from("changelogs")
+      .select("*", { count: "exact", head: true })
+      .eq("author_id", userData.user.id)
+      .gte("created_at", monthStart.toISOString());
+    if ((count ?? 0) >= FREE_CHANGELOG_MONTHLY_LIMIT) {
+      return NextResponse.json(
+        { error: `Free plan is limited to ${FREE_CHANGELOG_MONTHLY_LIMIT} changelogs per month. Upgrade to Pro for unlimited changelogs.` },
+        { status: 403 },
+      );
+    }
+  }
+
   const body = await req.json();
+  const { project_id, title } = body;
+  if (!project_id || typeof project_id !== "string") {
+    return NextResponse.json({ error: "Missing or invalid project_id" }, { status: 400 });
+  }
+  if (!title || typeof title !== "string") {
+    return NextResponse.json({ error: "Missing or invalid title" }, { status: 400 });
+  }
+
   const payload = { ...body, author_id: userData.user.id };
   const { data, error } = await supabase.from("changelogs").insert(payload).select("*").single();
 
