@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { canUseAi, getUserPlan } from "@/lib/plans";
 import { createClient } from "@/lib/supabase/server";
+import { generateDraftWithVenice, veniceEnabled } from "@/lib/ai";
 
 function fallbackMarkdown(input: string) {
   return `## Highlights\n\n${input
@@ -24,37 +25,13 @@ export async function POST(req: Request) {
   const changes = String(body.changes ?? "").trim();
   if (!changes) return NextResponse.json({ error: "Missing changes" }, { status: 400 });
 
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) return NextResponse.json({ markdown: fallbackMarkdown(changes) });
+  if (!veniceEnabled()) return NextResponse.json({ markdown: fallbackMarkdown(changes) });
 
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${key}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You write concise, polished SaaS release notes in markdown with sections: Highlights, Improvements, Fixes.",
-          },
-          {
-            role: "user",
-            content: `Turn these changes into release notes:\n${changes}`,
-          },
-        ],
-      }),
-    });
-
-    if (!response.ok) return NextResponse.json({ markdown: fallbackMarkdown(changes) });
-    const data = await response.json();
-    const markdown = data.choices?.[0]?.message?.content ?? fallbackMarkdown(changes);
-    return NextResponse.json({ markdown });
+    const markdown = await generateDraftWithVenice(changes);
+    return NextResponse.json({ markdown: markdown || fallbackMarkdown(changes) });
   } catch {
     return NextResponse.json({ markdown: fallbackMarkdown(changes) });
   }
 }
+
