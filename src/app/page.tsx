@@ -11,10 +11,12 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useMemo, useRef } from "react";
+import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Navbar } from "@/components/navbar";
 
 /* ─────────────────────────────────────────────────────────
  * LANDING PAGE STORYBOARD
@@ -118,6 +120,8 @@ export default function HomePage() {
         style={{ x: grainX }}
         className="pointer-events-none fixed inset-0 opacity-[0.06] [background-image:radial-gradient(#fff_0.4px,transparent_0.4px)] [background-size:3px_3px]"
       />
+
+      <Navbar />
 
       <main className="relative z-10">
         <motion.section
@@ -337,10 +341,10 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-7xl flex-col gap-4 text-sm text-slate-400 md:flex-row md:items-center md:justify-between">
           <p>© {new Date().getFullYear()} ShipFeed. All rights reserved.</p>
           <div className="flex items-center gap-5">
-            <a href="#" className="hover:text-white">Pricing</a>
-            <a href="#" className="hover:text-white">Docs</a>
-            <a href="#" className="hover:text-white">Twitter</a>
-            <a href="#" className="hover:text-white">GitHub</a>
+            <Link href="/pricing" className="hover:text-white">Pricing</Link>
+            <a href="https://docs.shipfeed.dev" className="hover:text-white">Docs</a>
+            <a href="https://twitter.com/shipfeed" className="hover:text-white">Twitter</a>
+            <a href="https://github.com/shipfeed" className="hover:text-white">GitHub</a>
           </div>
         </div>
       </footer>

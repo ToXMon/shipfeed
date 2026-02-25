@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Navbar } from "@/components/navbar";
 
 /* ─────────────────────────────────────────────────────────
  * PRICING PAGE STORYBOARD
@@ -75,10 +76,12 @@ export default function PricingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0A0F1E] px-6 py-16 text-slate-100">
+    <main className="min-h-screen bg-[#0A0F1E] text-slate-100">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.15),transparent_35%),radial-gradient(circle_at_80%_20%,rgba(139,92,246,0.12),transparent_30%)]" />
 
-      <div className="relative z-10 mx-auto max-w-4xl">
+      <Navbar />
+
+      <div className="relative z-10 mx-auto max-w-4xl px-6 py-16">
         <motion.div
           initial={{ opacity: ENTER.initialOpacity, y: ENTER.initialY }}
           animate={{ opacity: ENTER.targetOpacity, y: ENTER.targetY }}
@@ -96,7 +99,7 @@ export default function PricingPage() {
         <div className="grid gap-6 md:grid-cols-2">
           {PLANS.map((plan, idx) => (
             <motion.div
-n              key={plan.tier}
+              key={plan.tier}
               initial={{ opacity: 0, y: 24, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               whileHover={CARD_HOVER}
