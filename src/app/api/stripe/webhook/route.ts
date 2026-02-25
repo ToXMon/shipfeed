@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(req: Request) {
@@ -10,6 +10,8 @@ export async function POST(req: Request) {
   if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
     return NextResponse.json({ error: "Missing webhook configuration" }, { status: 400 });
   }
+
+  const stripe = getStripe();
 
   let event;
   try {
