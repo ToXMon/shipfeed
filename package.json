@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "submission:package": "bash scripts/package-submission.sh"
   },
   "dependencies": {
     "@stripe/stripe-js": "^8.8.0",
