@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -20,7 +20,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  const supabase = await createClient();
+  // Use the service-role client so webhook writes bypass RLS (no user session available)
+  const supabase = createAdminClient();
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
@@ -39,12 +40,32 @@ export async function POST(req: Request) {
     }
   }
 
+  if (event.type === "customer.subscription.updated") {
+    const subscription = event.data.object;
+    const isActive = subscription.status === "active" || subscription.status === "trialing";
+    await supabase
+      .from("subscriptions")
+      .update({ plan: isActive ? "pro" : "free", status: subscription.status })
+      .eq("stripe_subscription_id", subscription.id);
+  }
+
   if (event.type === "customer.subscription.deleted") {
     const subscription = event.data.object;
     await supabase
       .from("subscriptions")
       .update({ plan: "free", status: subscription.status })
       .eq("stripe_subscription_id", subscription.id);
+  }
+
+  if (event.type === "invoice.payment_failed") {
+    const invoice = event.data.object;
+    const subscriptionId = typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
+    if (subscriptionId) {
+      await supabase
+        .from("subscriptions")
+        .update({ status: "past_due" })
+        .eq("stripe_subscription_id", subscriptionId);
+    }
   }
 
   return NextResponse.json({ received: true });
